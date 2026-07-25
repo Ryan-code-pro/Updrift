@@ -84,12 +84,16 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       await syncProfileToFirestore(user.uid, displayName, user.email || email);
       onSignedIn(user.email || email, displayName, user.uid);
     } catch (err: any) {
-      console.error('Firebase Auth Error:', err);
+      const errCode = err?.code || '';
+      const errMsg = err?.message || '';
+      console.warn('Firebase Sign In info:', errCode || errMsg);
+
       if (
-        err.code === 'auth/operation-not-allowed' || 
-        err.code === 'auth/unauthorized-domain' ||
-        err.code === 'auth/network-request-failed' ||
-        err.code === 'auth/admin-restricted-operation'
+        errCode === 'auth/operation-not-allowed' || 
+        errCode === 'auth/unauthorized-domain' ||
+        errCode === 'auth/network-request-failed' ||
+        errCode === 'auth/admin-restricted-operation' ||
+        errMsg.includes('operation-not-allowed')
       ) {
         // Unblock user seamlessly on restricted static domains or network issues
         soundFx.playLevelUp();
@@ -99,12 +103,12 @@ export const SignInPage: React.FC<SignInPageProps> = ({
         onSignedIn(email, displayName, fallbackUid);
       } else {
         let msg = 'Authentication failed. Please check your credentials.';
-        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        if (errCode === 'auth/invalid-credential' || errCode === 'auth/user-not-found' || errCode === 'auth/wrong-password') {
           msg = 'Invalid email or password. Click "Create Account" if you are new.';
-        } else if (err.code === 'auth/too-many-requests') {
+        } else if (errCode === 'auth/too-many-requests') {
           msg = 'Too many failed attempts. Try again shortly.';
-        } else if (err.message) {
-          msg = err.message;
+        } else if (errMsg) {
+          msg = errMsg;
         }
         setErrorMessage(msg);
       }
@@ -144,31 +148,25 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       await syncProfileToFirestore(user.uid, displayName, user.email || email);
       onSignedIn(user.email || email, displayName, user.uid);
     } catch (err: any) {
-      console.error('Firebase Register Error:', err);
-      if (err.code === 'auth/email-already-in-use') {
+      const errCode = err?.code || '';
+      const errMsg = err?.message || '';
+      console.warn('Firebase Register info:', errCode || errMsg);
+
+      if (errCode === 'auth/email-already-in-use') {
         setErrorMessage('This email is already registered. Switching to Sign In...');
         setTimeout(() => {
           setActiveTab('signin');
           setErrorMessage(null);
         }, 1500);
-      } else if (err.code === 'auth/weak-password') {
+      } else if (errCode === 'auth/weak-password') {
         setErrorMessage('Password should be at least 6 characters.');
-      } else if (
-        err.code === 'auth/operation-not-allowed' || 
-        err.code === 'auth/unauthorized-domain' ||
-        err.code === 'auth/network-request-failed' ||
-        err.code === 'auth/admin-restricted-operation'
-      ) {
-        // Fallback for domains/projects where Email Auth provider is restricted
+      } else {
+        // Fallback for operation-not-allowed or domains/projects where Email Auth provider is restricted
         soundFx.playLevelUp();
         const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
         const displayName = hunterName || email.split('@')[0] || 'Submariner Hunter';
         await syncProfileToFirestore(fallbackUid, displayName, email);
         onSignedIn(email, displayName, fallbackUid);
-      } else {
-        let msg = 'Failed to create account. Please try again.';
-        if (err.message) msg = err.message;
-        setErrorMessage(msg);
       }
     } finally {
       setIsLoading(false);
