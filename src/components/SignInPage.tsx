@@ -35,6 +35,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
   const syncProfileToFirestore = async (uid: string, name: string, userEmail: string) => {
     try {
+      if (!db) return;
       const userRef = doc(db, 'users', uid);
       const docSnap = await getDoc(userRef);
 
