@@ -1,5 +1,5 @@
 {
-  "name": "Abyss Leveler - Underwater AI Study Engine",
+  "name": "Updrift-Hackdays",
   "description": "Deep-sea underwater themed AI study quest system with depth pressure gauges, sonar audiobooks, abyssal hydro-notes, Leviathan boss fights, and real-time depth diagnostic analytics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
