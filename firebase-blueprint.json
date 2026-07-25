@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "users": {
+      "title": "users",
+      "description": "User profiles and stats",
+      "properties": {
+        "id": { "type": "string", "description": "User UID" },
+        "displayName": { "type": "string", "description": "Hunter name" },
+        "email": { "type": "string", "description": "Hunter email" },
+        "hunterClass": { "type": "string", "description": "Hunter class" },
+        "rank": { "type": "string", "description": "Hunter rank" },
+        "level": { "type": "number", "description": "Hunter level" },
+        "xp": { "type": "number", "description": "Current XP" },
+        "depthMeters": { "type": "number", "description": "Abyssal depth" },
+        "gold": { "type": "number", "description": "Gold coins" }
+      },
+      "required": ["id", "displayName"]
+    },
+    "quests": {
+      "title": "quests",
+      "description": "User study quests",
+      "properties": {
+        "id": { "type": "string", "description": "Quest ID" },
+        "userId": { "type": "string", "description": "User UID" },
+        "title": { "type": "string", "description": "Quest title" },
+        "completed": { "type": "boolean", "description": "Is quest completed" }
+      },
+      "required": ["id", "userId", "title"]
+    }
+  }
+}

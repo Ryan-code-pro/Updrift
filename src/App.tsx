@@ -20,6 +20,9 @@ import { SystemChatDrawer } from './components/SystemChatDrawer';
 import { DepthAnalyticsModal } from './components/DepthAnalyticsModal';
 import { AuthModal, UserAccount } from './components/AuthModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
+import { LoadingScreen } from './components/LoadingScreen';
+import { SignInPage } from './components/SignInPage';
+import { auth, onAuthStateChanged, signOut as firebaseSignOut } from './lib/firebase';
 import { soundFx } from './utils/soundEffects';
 import {
   createClientFallbackCampaign,
@@ -106,7 +109,11 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
-  // User Account state for Email Verification & Save
+  // --- App Loading & Authentication Gate ---
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [isGuestSession, setIsGuestSession] = useState(false);
+
+  // User Account state synced with Firebase Auth & LocalCache
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -119,6 +126,47 @@ export default function App() {
     return null;
   });
 
+  // Firebase Auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const acc: UserAccount = {
+          email: firebaseUser.email || 'guest@updrift.net',
+          name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Guest Submariner'),
+          isVerified: true,
+          savedAt: new Date().toISOString(),
+        };
+        setCurrentUser(acc);
+        setProfile((prev) => ({
+          ...prev,
+          name: acc.name,
+        }));
+        try {
+          localStorage.setItem('solo_leveler_user', JSON.stringify(acc));
+        } catch {
+          // Guard
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch {
+      // Guard
+    }
+    setCurrentUser(null);
+    setIsGuestSession(false);
+    setIsAuthModalOpen(false);
+    try {
+      localStorage.removeItem('solo_leveler_user');
+    } catch {
+      // Guard
+    }
+  };
+
   const handleLoginSuccess = (account: UserAccount) => {
     setCurrentUser(account);
     setProfile((prev) => ({
@@ -130,6 +178,10 @@ export default function App() {
     } catch {
       // Storage guard
     }
+  };
+
+  const handleSaveUser = (account: UserAccount) => {
+    handleLoginSuccess(account);
   };
 
   // --- AI Loaded Cache for Active Topic ---
@@ -411,6 +463,27 @@ export default function App() {
     });
   };
 
+  if (isAppLoading) {
+    return <LoadingScreen onComplete={() => setIsAppLoading(false)} />;
+  }
+
+  if (!currentUser && !isGuestSession) {
+    return (
+      <SignInPage
+        onSignedIn={(email, name) => {
+          setCurrentUser({
+            email,
+            name,
+            isVerified: true,
+            savedAt: new Date().toISOString(),
+          });
+        }}
+        onContinueAsGuest={() => setIsGuestSession(true)}
+        currentProfile={profile}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-cyan-500 selection:text-zinc-950">
       
@@ -635,7 +708,9 @@ export default function App() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
+        currentUser={currentUser}
+        onSaveUser={handleSaveUser}
+        onLogout={handleLogout}
       />
 
       <LeaderboardModal

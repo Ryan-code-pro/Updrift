@@ -1,7 +1,7 @@
 import React from 'react';
 import { HunterProfile } from '../types';
 import { getRankDetails } from '../data/hunterRanks';
-import { Shield, Waves, Zap, Sparkles, PlusCircle, UserCheck, Trophy, ShieldCheck, Flame } from 'lucide-react';
+import { Shield, Waves, Zap, Sparkles, PlusCircle, UserCheck, Trophy, ShieldCheck, Flame, Anchor } from 'lucide-react';
 import { UserAccount } from './AuthModal';
 
 interface HunterHeaderProps {
@@ -31,15 +31,25 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           
-          {/* Left: Player Identity & Submarine Rank */}
+          {/* Left: Updrift Brand & Player Identity */}
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 pr-2 border-r border-cyan-900/60">
+                <div className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-500/50 text-cyan-300 shadow-sm shadow-cyan-500/30">
+                  <Anchor className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-sm font-black text-white font-mono tracking-wider">UPDRIFT</div>
+                  <div className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">ABYSSAL ENGINE</div>
+                </div>
+              </div>
+
               <button
                 onClick={onOpenStats}
-                className="group relative flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 border border-cyan-400/50 shadow-md shadow-cyan-500/20 hover:border-cyan-300 transition-all cursor-pointer"
+                className="group relative flex items-center justify-center w-11 h-11 rounded-xl bg-slate-900 border border-cyan-400/50 shadow-md shadow-cyan-500/20 hover:border-cyan-300 transition-all cursor-pointer"
                 title="View Submariner Status"
               >
-                <div className="text-xl font-black text-cyan-300 font-mono">
+                <div className="text-base font-black text-cyan-300 font-mono">
                   L{profile.level}
                 </div>
                 {profile.stats.unassignedPoints > 0 && (
