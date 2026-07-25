@@ -1,13 +1,17 @@
 import React from 'react';
 import { HunterProfile } from '../types';
 import { getRankDetails } from '../data/hunterRanks';
-import { Shield, Waves, Zap, Sparkles, PlusCircle, UserCheck, Anchor, Gauge } from 'lucide-react';
+import { Shield, Waves, Zap, Sparkles, PlusCircle, UserCheck, Trophy, ShieldCheck, Flame } from 'lucide-react';
+import { UserAccount } from './AuthModal';
 
 interface HunterHeaderProps {
   profile: HunterProfile;
   onOpenStats: () => void;
   onNewSyllabus: () => void;
   onOpenDepthAnalytics: () => void;
+  onOpenAuth: () => void;
+  onOpenLeaderboard: () => void;
+  currentUser: UserAccount | null;
 }
 
 export const HunterHeader: React.FC<HunterHeaderProps> = ({
@@ -15,6 +19,9 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
   onOpenStats,
   onNewSyllabus,
   onOpenDepthAnalytics,
+  onOpenAuth,
+  onOpenLeaderboard,
+  currentUser,
 }) => {
   const rankInfo = getRankDetails(profile.rank);
   const xpPercentage = Math.min(100, Math.round((profile.currentXp / profile.requiredXp) * 100));
@@ -48,7 +55,7 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
                     [NAVIGATOR]
                   </span>
                   <h1 className="text-base font-bold text-zinc-100 font-mono tracking-wide">
-                    {profile.name}
+                    {currentUser?.name || profile.name}
                   </h1>
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider font-mono ${rankInfo.badgeColor} ${rankInfo.glowColor}`}
@@ -65,11 +72,18 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
             {/* Mobile Actions */}
             <div className="flex md:hidden items-center gap-1.5">
               <button
-                onClick={onOpenDepthAnalytics}
-                className="p-2 rounded-lg bg-cyan-950 border border-cyan-500/50 text-cyan-300 text-xs font-mono font-bold"
-                title="How Under Water Am I?"
+                onClick={onOpenLeaderboard}
+                className="p-2 rounded-lg bg-amber-950 border border-amber-500/50 text-amber-300 text-xs font-mono font-bold"
+                title="Streak Leaderboard"
               >
-                <Waves className="w-4 h-4 animate-pulse text-cyan-400" />
+                <Trophy className="w-4 h-4 text-amber-400" />
+              </button>
+              <button
+                onClick={onOpenAuth}
+                className="p-2 rounded-lg bg-cyan-950 border border-cyan-500/50 text-cyan-300 text-xs font-mono font-bold"
+                title="Account / Sign In"
+              >
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
               </button>
               <button
                 onClick={onNewSyllabus}
@@ -81,9 +95,18 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
             </div>
           </div>
 
-          {/* Middle: Underwater Gauges & Stats */}
-          <div className="flex items-center gap-3 sm:gap-5 w-full md:w-auto justify-center flex-wrap">
+          {/* Middle: Underwater Gauges & Leaderboard Trigger */}
+          <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto justify-center flex-wrap">
             
+            {/* Streak Leaderboard Button */}
+            <button
+              onClick={onOpenLeaderboard}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/50 text-amber-300 hover:border-amber-400 hover:text-amber-200 transition-all cursor-pointer font-mono text-xs font-bold"
+            >
+              <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
+              <span>{profile.streakDays}d Streak Leaderboard</span>
+            </button>
+
             {/* "HOW UNDER WATER ARE YOU?" DEPTH TRIGGER BUTTON */}
             <button
               onClick={onOpenDepthAnalytics}
@@ -103,40 +126,8 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
               </div>
             </button>
 
-            {/* Oxygen / HP Bar */}
-            <div className="flex flex-col min-w-[100px] sm:min-w-[120px]">
-              <div className="flex justify-between text-[11px] font-mono text-cyan-200/80 mb-1 font-semibold">
-                <span className="text-sky-300 flex items-center gap-1">
-                  <Gauge className="w-3 h-3 inline" /> Oxygen
-                </span>
-                <span>{profile.oxygenLevel || 85}%</span>
-              </div>
-              <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-sky-800/50">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-cyan-300 transition-all duration-300 rounded-full"
-                  style={{ width: `${profile.oxygenLevel || 85}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Sonar MP Bar */}
-            <div className="flex flex-col min-w-[100px] sm:min-w-[120px]">
-              <div className="flex justify-between text-[11px] font-mono text-cyan-200/80 mb-1 font-semibold">
-                <span className="text-cyan-400 flex items-center gap-1">
-                  <Zap className="w-3 h-3 inline" /> Sonar MP
-                </span>
-                <span>{profile.mp}/{profile.maxMp}</span>
-              </div>
-              <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-cyan-900/50">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-600 to-teal-400 transition-all duration-300 rounded-full"
-                  style={{ width: `${(profile.mp / profile.maxMp) * 100}%` }}
-                />
-              </div>
-            </div>
-
             {/* XP Level Bar */}
-            <div className="flex flex-col min-w-[110px] sm:min-w-[140px]">
+            <div className="flex flex-col min-w-[90px] sm:min-w-[110px]">
               <div className="flex justify-between text-[11px] font-mono text-cyan-200/80 mb-1 font-semibold">
                 <span className="text-teal-300 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 inline" /> XP
@@ -156,12 +147,21 @@ export const HunterHeader: React.FC<HunterHeaderProps> = ({
           {/* Right: Submarine Actions */}
           <div className="hidden md:flex items-center gap-2">
             <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-950/70 border border-cyan-500/50 hover:border-cyan-400 text-xs font-mono font-bold text-cyan-300 transition-all cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4 text-cyan-400" />
+              <span>{currentUser?.isVerified ? 'Verified Account' : 'Sign In / Save'}</span>
+            </button>
+
+            <button
               onClick={onOpenStats}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-500/60 text-xs font-mono font-semibold text-cyan-200 hover:text-cyan-300 transition-all cursor-pointer"
             >
               <UserCheck className="w-3.5 h-3.5" />
               <span>Status</span>
             </button>
+
             <button
               onClick={onNewSyllabus}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-mono font-bold text-xs transition-all shadow-md shadow-cyan-500/30 cursor-pointer"

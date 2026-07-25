@@ -208,32 +208,33 @@ app.post('/api/generate-audiobook', async (req, res) => {
     }
 
     const prompt = `
-You are "The System Audio Briefing Engine". Create an engaging, high-retention audio lesson script breakdown for the student studying "${topic}" (${subjectName || 'Subject'}).
+You are "The Sonar Hydrophone Audio Engine". Create an extensive, highly detailed, high-yield audio lesson script breakdown for the student studying "${topic}" in subject "${subjectName || 'Syllabus'}".
 
-The script should be structured as an interactive dialogue/narration between "System Narrator" and "Concept Guide".
-Make it clear, conversational, engaging, and perfect for listening while walking or relaxing!
+The script should be structured as an interactive dialogue between "Sonar Narrator" and "Abyssal Hydro-Guide".
+Make it rich with important exam facts, key formulas, core definitions, practical step-by-step problem solving, and common exam traps!
 
 Return strictly valid JSON in this structure:
 {
   "topic": "${topic}",
-  "durationMinutes": 6,
+  "durationMinutes": 8,
   "keyTakeaways": [
-    "Takeaway 1: ...",
-    "Takeaway 2: ...",
-    "Takeaway 3: ..."
+    "High-Yield Takeaway 1: ...",
+    "High-Yield Takeaway 2: ...",
+    "High-Yield Takeaway 3: ...",
+    "High-Yield Takeaway 4: ..."
   ],
   "scriptLines": [
     {
-      "speaker": "System Narrator",
-      "text": "Welcome Hunter. Today's audio briefing covers ${topic}. Let's break down the core mechanics."
+      "speaker": "Sonar Narrator",
+      "text": "Welcome Submariner. Initiating deep-water acoustic briefing for ${topic} in ${subjectName || 'Syllabus'}. Prepare to absorb high-yield concepts."
     },
     {
-      "speaker": "Concept Guide",
-      "text": "First, understand that..."
+      "speaker": "Abyssal Hydro-Guide",
+      "text": "Let us dive straight into the foundational core definition of ${topic}..."
     }
   ]
 }
-Include at least 8-12 dialogue exchanges.
+IMPORTANT: Include at least 10 to 14 detailed dialogue lines covering definitions, formulas/rules, exam pitfalls, and real-world oceanic or practical analogies!
 `;
 
     const response = await ai.models.generateContent({
@@ -584,32 +585,53 @@ function getFallbackNotes(topic: string, subjectName?: string) {
 function getFallbackAudioLesson(topic: string) {
   return {
     topic: topic || 'Lesson Briefing',
-    durationMinutes: 5,
+    durationMinutes: 8,
     keyTakeaways: [
-      `Mastering ${topic} requires understanding cause-and-effect relationships.`,
-      `Focus on key variables and their direct mathematical or logical proportionalities.`,
-      `Test your recall immediately after listening by clearing the Floor Boss Quiz.`,
+      `Mastering ${topic} requires precise understanding of core definitions and variable relationships.`,
+      `Always state standard equations before plugging in numerical values to prevent easy calculation errors.`,
+      `Verify dimensional consistency and unit conversions across all intermediate steps.`,
+      `Watch out for negative signs, boundary limits, and zero-division constraints in exam questions.`,
     ],
     scriptLines: [
       {
-        speaker: 'System Narrator',
-        text: `Welcome Hunter. Initiating System Audio Briefing for topic: ${topic}.`,
+        speaker: 'Sonar Narrator',
+        text: `Welcome Submariner. Initiating deep sonar acoustic briefing for topic: ${topic}. Let us unpack the core exam principles.`,
       },
       {
-        speaker: 'Concept Guide',
-        text: `Let's break this down into three essential parts. First, what is the core purpose of ${topic}? It allows us to systematically analyze complex system behavior.`,
+        speaker: 'Abyssal Hydro-Guide',
+        text: `Let's break this down into four essential components. First, what is the primary definition of ${topic}? It establishes how input variables govern output behavior.`,
       },
       {
-        speaker: 'System Narrator',
-        text: `Exactly. When studying for exams, professors test your ability to explain both the 'How' and the 'Why'.`,
+        speaker: 'Sonar Narrator',
+        text: `Correct. In university examinations, professors test whether you understand the fundamental theoretical derivation or merely memorized formulas.`,
       },
       {
-        speaker: 'Concept Guide',
-        text: `Second, pay close attention to boundary conditions. Many students lose easy marks by applying formulas where conditions do not hold.`,
+        speaker: 'Abyssal Hydro-Guide',
+        text: `Second, examine the primary equation. Always write down the general formula first before substituting specific numbers.`,
       },
       {
-        speaker: 'System Narrator',
-        text: `System Alert: Keep these key rules in mind. Now prepare to review the Grimoire notes and challenge the Floor Boss Quiz!`,
+        speaker: 'Sonar Narrator',
+        text: `Third, let's discuss boundary conditions. Many students lose easy marks by applying equations outside their domain of validity.`,
+      },
+      {
+        speaker: 'Abyssal Hydro-Guide',
+        text: `For instance, always check if temperature, pressure, or initial conditions impose non-zero constraints on your solution.`,
+      },
+      {
+        speaker: 'Sonar Narrator',
+        text: `Fourth, what is the #1 exam trap in ${topic}? Unit mismatch! Converting milliseconds to seconds or grams to kilograms prevents costly errors.`,
+      },
+      {
+        speaker: 'Abyssal Hydro-Guide',
+        text: `Finally, when asked a conceptual question, start your response with a concise 1-sentence definition before expanding into mathematical steps.`,
+      },
+      {
+        speaker: 'Sonar Narrator',
+        text: `Remember: You can pause this audio at any point to ask Sonar Hydro AI a doubt mid-session if any concept feels unclear!`,
+      },
+      {
+        speaker: 'Abyssal Hydro-Guide',
+        text: `Acoustic briefing complete. Review your Hydro-Log notes and proceed to challenge the Kraken Boss Quiz to equalize hull pressure!`,
       },
     ],
   };

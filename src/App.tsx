@@ -18,7 +18,15 @@ import { BossQuizModal } from './components/BossQuizModal';
 import { HunterStatsModal } from './components/HunterStatsModal';
 import { SystemChatDrawer } from './components/SystemChatDrawer';
 import { DepthAnalyticsModal } from './components/DepthAnalyticsModal';
+import { AuthModal, UserAccount } from './components/AuthModal';
+import { LeaderboardModal } from './components/LeaderboardModal';
 import { soundFx } from './utils/soundEffects';
+import {
+  createClientFallbackCampaign,
+  createClientFallbackNotes,
+  createClientFallbackAudio,
+  createClientFallbackQuiz,
+} from './utils/clientFallback';
 import {
   Swords,
   BookOpen,
@@ -83,6 +91,34 @@ export default function App() {
   const [isBossQuizOpen, setIsBossQuizOpen] = useState(false);
   const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
   const [isDepthModalOpen, setIsDepthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+
+  // User Account state for Email Verification & Save
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('solo_leveler_user');
+        return saved ? JSON.parse(saved) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const handleLoginSuccess = (account: UserAccount) => {
+    setCurrentUser(account);
+    setProfile((prev) => ({
+      ...prev,
+      name: account.name || prev.name,
+    }));
+    try {
+      localStorage.setItem('solo_leveler_user', JSON.stringify(account));
+    } catch {
+      // Storage guard
+    }
+  };
 
   // --- AI Loaded Cache for Active Topic ---
   const [notesCache, setNotesCache] = useState<Record<number, LessonNotes>>({});
@@ -157,24 +193,43 @@ export default function App() {
     dailyHours: number;
     hunterClass: string;
   }) => {
-    const response = await fetch('/api/generate-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
+    let loadedCampaign = null;
 
-    const data = await response.json();
-    if (data.campaign) {
-      setCampaign(data.campaign);
-      setActiveDayNumber(1);
-      setProfile((prev) => ({
-        ...prev,
-        hunterClass: params.hunterClass,
-      }));
-      setNotesCache({});
-      setAudioCache({});
-      setQuizCache({});
+    try {
+      const response = await fetch('/api/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.campaign) {
+          loadedCampaign = data.campaign;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend API unavailable, using client-side fallback:', err);
     }
+
+    if (!loadedCampaign) {
+      loadedCampaign = createClientFallbackCampaign(
+        params.subjectName,
+        params.syllabusText,
+        params.examDate,
+        params.dailyHours
+      );
+    }
+
+    setCampaign(loadedCampaign);
+    setActiveDayNumber(1);
+    setProfile((prev) => ({
+      ...prev,
+      hunterClass: params.hunterClass,
+    }));
+    setNotesCache({});
+    setAudioCache({});
+    setQuizCache({});
   };
 
   // --- Toggle Sub-Quest Completion ---
@@ -227,15 +282,21 @@ export default function App() {
         }),
       });
 
-      const data = await res.json();
-      if (data.notes) {
-        setNotesCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.notes }));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.notes) {
+          setNotesCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.notes }));
+          setIsNotesLoading(false);
+          return;
+        }
       }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setIsNotesLoading(false);
+      console.warn('Backend API unavailable, using client fallback notes:', err);
     }
+
+    const fallback = createClientFallbackNotes(activeDay.mainTopic, campaign?.subjectName);
+    setNotesCache((prev) => ({ ...prev, [activeDay.dayNumber]: fallback }));
+    setIsNotesLoading(false);
   };
 
   // --- Fetch AI Audiobook Script ---
@@ -253,15 +314,21 @@ export default function App() {
         }),
       });
 
-      const data = await res.json();
-      if (data.audioLesson) {
-        setAudioCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.audioLesson }));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.audioLesson) {
+          setAudioCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.audioLesson }));
+          setIsAudioLoading(false);
+          return;
+        }
       }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setIsAudioLoading(false);
+      console.warn('Backend API unavailable, using client fallback audio:', err);
     }
+
+    const fallback = createClientFallbackAudio(activeDay.mainTopic, campaign?.subjectName);
+    setAudioCache((prev) => ({ ...prev, [activeDay.dayNumber]: fallback }));
+    setIsAudioLoading(false);
   };
 
   // --- Fetch AI Boss Quiz ---
@@ -279,15 +346,21 @@ export default function App() {
         }),
       });
 
-      const data = await res.json();
-      if (data.quiz) {
-        setQuizCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.quiz }));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.quiz) {
+          setQuizCache((prev) => ({ ...prev, [activeDay.dayNumber]: data.quiz }));
+          setIsQuizLoading(false);
+          return;
+        }
       }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setIsQuizLoading(false);
+      console.warn('Backend API unavailable, using client fallback quiz:', err);
     }
+
+    const fallback = createClientFallbackQuiz(activeDay.mainTopic, campaign?.subjectName);
+    setQuizCache((prev) => ({ ...prev, [activeDay.dayNumber]: fallback }));
+    setIsQuizLoading(false);
   };
 
   // --- Boss Quiz Cleared Handler ---
@@ -344,6 +417,15 @@ export default function App() {
           soundFx.playSystemBeep();
           setIsDepthModalOpen(true);
         }}
+        onOpenAuth={() => {
+          soundFx.playSystemBeep();
+          setIsAuthModalOpen(true);
+        }}
+        onOpenLeaderboard={() => {
+          soundFx.playSystemBeep();
+          setIsLeaderboardOpen(true);
+        }}
+        currentUser={currentUser}
       />
 
       {/* Level Up Banner Alert */}
@@ -536,6 +618,18 @@ export default function App() {
         isOpen={isChatDrawerOpen}
         onClose={() => setIsChatDrawerOpen(false)}
         activeTopic={activeTopic}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      <LeaderboardModal
+        isOpen={isLeaderboardOpen}
+        onClose={() => setIsLeaderboardOpen(false)}
+        currentUserProfile={profile}
       />
 
     </div>
