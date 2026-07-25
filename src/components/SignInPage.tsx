@@ -66,6 +66,15 @@ export const SignInPage: React.FC<SignInPageProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
 
+    if (!auth) {
+      soundFx.playLevelUp();
+      const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
+      const displayName = email.split('@')[0] || 'Submariner Hunter';
+      onSignedIn(email, displayName, fallbackUid);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -104,6 +113,16 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       return;
     }
 
+    if (!auth) {
+      soundFx.playLevelUp();
+      const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
+      const displayName = hunterName || email.split('@')[0] || 'Submariner Hunter';
+      await syncProfileToFirestore(fallbackUid, displayName, email);
+      onSignedIn(email, displayName, fallbackUid);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -136,6 +155,14 @@ export const SignInPage: React.FC<SignInPageProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
 
+    if (!auth) {
+      soundFx.playLevelUp();
+      const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
+      onSignedIn('google.hunter@updrift.net', 'Google Submariner', fallbackUid);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -155,6 +182,14 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const handleGuestSignIn = async () => {
     soundFx.playSystemBeep();
     setIsLoading(true);
+
+    if (!auth) {
+      soundFx.playLevelUp();
+      onContinueAsGuest();
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await signInAnonymously(auth);
       const user = userCredential.user;

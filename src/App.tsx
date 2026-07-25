@@ -128,34 +128,41 @@ export default function App() {
 
   // Firebase Auth listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        const acc: UserAccount = {
-          email: firebaseUser.email || 'guest@updrift.net',
-          name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Guest Submariner'),
-          isVerified: true,
-          savedAt: new Date().toISOString(),
-        };
-        setCurrentUser(acc);
-        setProfile((prev) => ({
-          ...prev,
-          name: acc.name,
-        }));
-        try {
-          localStorage.setItem('solo_leveler_user', JSON.stringify(acc));
-        } catch {
-          // Guard
+    if (!auth) return;
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          const acc: UserAccount = {
+            email: firebaseUser.email || 'guest@updrift.net',
+            name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Guest Submariner'),
+            isVerified: true,
+            savedAt: new Date().toISOString(),
+          };
+          setCurrentUser(acc);
+          setProfile((prev) => ({
+            ...prev,
+            name: acc.name,
+          }));
+          try {
+            localStorage.setItem('solo_leveler_user', JSON.stringify(acc));
+          } catch {
+            // Guard
+          }
         }
-      }
-    });
-    return () => unsubscribe();
+      });
+      return () => unsubscribe();
+    } catch (err) {
+      console.warn('Firebase onAuthStateChanged error:', err);
+    }
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await firebaseSignOut(auth);
-    } catch {
-      // Guard
+    if (auth) {
+      try {
+        await firebaseSignOut(auth);
+      } catch {
+        // Guard
+      }
     }
     setCurrentUser(null);
     setIsGuestSession(false);
