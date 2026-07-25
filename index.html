@@ -5,22 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Updrift-Hackdays</title>
     <script>
-      // Single Page Apps for GitHub Pages
-      (function(l) {
-        if (l.search[1] === '/' ) {
+      // Single Page Apps for GitHub Pages & Relative Base Redirects
+      (function() {
+        var l = window.location;
+        // 1. Force trailing slash on repository root if missing so relative assets load correctly
+        if (!l.pathname.endsWith('/') && l.pathname.indexOf('.') === -1) {
+          l.replace(l.protocol + '//' + l.host + l.pathname + '/' + l.search + l.hash);
+          return;
+        }
+        // 2. Decode SPA query redirects from 404.html
+        if (l.search && l.search[1] === '/') {
           var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
+            return s.replace(/~and~/g, '&');
           }).join('?');
           window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
+            (l.pathname.endsWith('/') ? l.pathname : l.pathname + '/') + decoded.slice(1) + l.hash
           );
         }
-      }(window.location));
+      })();
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
 

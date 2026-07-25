@@ -46,7 +46,19 @@ export default function App() {
   const [profile, setProfile] = useState<HunterProfile>(() => {
     try {
       const saved = localStorage.getItem('solo_leveler_profile');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_HUNTER_PROFILE,
+            ...parsed,
+            stats: {
+              ...INITIAL_HUNTER_PROFILE.stats,
+              ...(parsed.stats || {}),
+            },
+          };
+        }
+      }
     } catch {
       // Fallback
     }
