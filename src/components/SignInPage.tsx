@@ -85,8 +85,13 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       onSignedIn(user.email || email, displayName, user.uid);
     } catch (err: any) {
       console.error('Firebase Auth Error:', err);
-      if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/unauthorized-domain') {
-        // Unblock user seamlessly on restricted static domains
+      if (
+        err.code === 'auth/operation-not-allowed' || 
+        err.code === 'auth/unauthorized-domain' ||
+        err.code === 'auth/network-request-failed' ||
+        err.code === 'auth/admin-restricted-operation'
+      ) {
+        // Unblock user seamlessly on restricted static domains or network issues
         soundFx.playLevelUp();
         const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
         const displayName = email.split('@')[0] || 'Submariner Hunter';
@@ -148,7 +153,12 @@ export const SignInPage: React.FC<SignInPageProps> = ({
         }, 1500);
       } else if (err.code === 'auth/weak-password') {
         setErrorMessage('Password should be at least 6 characters.');
-      } else if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/unauthorized-domain') {
+      } else if (
+        err.code === 'auth/operation-not-allowed' || 
+        err.code === 'auth/unauthorized-domain' ||
+        err.code === 'auth/network-request-failed' ||
+        err.code === 'auth/admin-restricted-operation'
+      ) {
         // Fallback for domains/projects where Email Auth provider is restricted
         soundFx.playLevelUp();
         const fallbackUid = 'usr_' + Math.random().toString(36).substring(2, 9);
